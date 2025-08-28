@@ -8,7 +8,11 @@
 import { v4 as uuidv4 } from "uuid";
 
 const InMemoryDb = {
-  users: [],
+  users: [{
+    username: "testuser",
+    password: "password123",
+    createdAt: new Date(),
+  }],
   tweets: [],
 };
 
