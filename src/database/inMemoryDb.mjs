@@ -20,6 +20,22 @@ InMemoryDbService = {
     addUser(user) {
       InMemoryDb.users.push(user);
     },
+    addUserToken(username, token) {
+      const user = InMemoryDb.users.find((user) => user.username === username);
+      if (user) {
+        user.token = token;
+        return true;
+      }
+      return false;
+    },
+    removeUserToken(username) {
+      const user = InMemoryDb.users.find((user) => user.username === username);
+      if (user) {
+        delete user.token;
+        return true;
+      }
+      return false;
+    },
     findUserByUsername(username) {
       const user = InMemoryDb.users.find((user) => user.username === username);
       return user || null;
