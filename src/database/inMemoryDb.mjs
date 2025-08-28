@@ -11,6 +11,7 @@ const InMemoryDb = {
   users: [{
     username: "testuser",
     password: "password123",
+    token: null,
     createdAt: new Date(),
   }],
   tweets: [],

@@ -35,6 +35,7 @@ UserRouter.post("/api/users", (req, res) => {
     const newUser = {
       username,
       password, // This should be hashed!!!!!!!
+      token: null,
       createdAt: new Date(),
     };
 
@@ -86,6 +87,7 @@ UserRouter.get("/api/users/me", authenticateToken, (req, res) => {
     }
 
     delete user.password;
+    delete user.token;
     return res.status(200).json(user);
   } catch (error) {
     return res.status(500).json({
