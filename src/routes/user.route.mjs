@@ -1,12 +1,12 @@
 import { Router } from "express";
 import { v4 as uuidv4 } from "uuid";
-import InMemoryDbService from "../database/inMemoryDb.mjs";
+import PrismaDbService from "../database/prismaDbService.mjs";
 import { authenticateToken } from "../middleware/auth.middleware.mjs";
 
 const UserRouter = Router();
 
 // Register new user
-UserRouter.post("/api/users", (req, res) => {
+UserRouter.post("/api/users", async (req, res) => {
   try {
     const { username, password, confirmPassword } = req.body;
 
@@ -24,7 +24,9 @@ UserRouter.post("/api/users", (req, res) => {
     }
 
     // Check if username is already taken
-    const existingUser = InMemoryDbService.user.findUserByUsername(username);
+    const existingUser = await PrismaDbService.user.findUserByUsername(
+      username
+    );
     if (existingUser) {
       return res.status(409).json({
         message: "Username already exists",
@@ -39,7 +41,7 @@ UserRouter.post("/api/users", (req, res) => {
       createdAt: new Date(),
     };
 
-    InMemoryDbService.user.addUser(newUser);
+    await PrismaDbService.user.addUser(newUser);
 
     // Return user without password
     delete newUser.password;
@@ -56,9 +58,9 @@ UserRouter.post("/api/users", (req, res) => {
 });
 
 // Get all users
-UserRouter.get("/api/users", authenticateToken, (req, res) => {
+UserRouter.get("/api/users", async (req, res) => {
   try {
-    const users = InMemoryDbService.user.getUsers();
+    const users = await PrismaDbService.user.getUsers();
 
     const usersWithoutPasswords = users.map((user) => {
       const { password, token, ...userWithoutPassword } = user;
@@ -75,10 +77,10 @@ UserRouter.get("/api/users", authenticateToken, (req, res) => {
 });
 
 // Get profile of logged in user
-UserRouter.get("/api/users/me", authenticateToken, (req, res) => {
+UserRouter.get("/api/users/me", authenticateToken, async (req, res) => {
   try {
     const username = req.user.username;
-    const user = InMemoryDbService.user.findUserByUsername(username);
+    const user = await PrismaDbService.user.findUserByUsername(username);
 
     if (!user) {
       return res.status(404).json({
@@ -98,7 +100,7 @@ UserRouter.get("/api/users/me", authenticateToken, (req, res) => {
 });
 
 // Login user
-UserRouter.post("/api/users/login", (req, res) => {
+UserRouter.post("/api/users/login", async (req, res) => {
   try {
     const { username, password } = req.body;
 
@@ -110,7 +112,7 @@ UserRouter.post("/api/users/login", (req, res) => {
     }
 
     // Find user
-    const user = InMemoryDbService.user.findUserByUsername(username);
+    const user = await PrismaDbService.user.findUserByUsername(username);
 
     if (!user || user.password !== password) {
       return res.status(401).json({
@@ -122,7 +124,7 @@ UserRouter.post("/api/users/login", (req, res) => {
     const token = uuidv4();
 
     // Save token to user
-    InMemoryDbService.user.addUserToken(username, token);
+    await PrismaDbService.user.addUserToken(username, token);
 
     return res.status(200).json({
       message: "Login successful",
@@ -137,7 +139,7 @@ UserRouter.post("/api/users/login", (req, res) => {
 });
 
 // Logout user
-UserRouter.post("/api/users/logout", (req, res) => {
+UserRouter.post("/api/users/logout", async (req, res) => {
   try {
     const { token } = req.body;
 
@@ -148,7 +150,7 @@ UserRouter.post("/api/users/logout", (req, res) => {
     }
 
     // Find user by token
-    const user = InMemoryDbService.user.findUserByToken(token);
+    const user = await PrismaDbService.user.findUserByToken(token);
 
     if (!user) {
       return res.status(401).json({
@@ -157,7 +159,7 @@ UserRouter.post("/api/users/logout", (req, res) => {
     }
 
     // Remove token
-    InMemoryDbService.user.removeUserToken(user.username);
+    await PrismaDbService.user.removeUserToken(user.username);
 
     return res.status(200).json({
       message: "Logout successful",

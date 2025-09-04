@@ -1,16 +1,16 @@
 import { Router } from "express";
-import InMemoryDbService from "../database/inMemoryDb.mjs";
+import PrismaDbService from "../database/prismaDbService.mjs";
 import { authenticateToken } from "../middleware/auth.middleware.mjs";
 
 const TweetRouter = Router();
 
 // Get all tweets
-TweetRouter.get("/api/tweets", (req, res) => {
+TweetRouter.get("/api/tweets", async (req, res) => {
   /*
     Get all tweets
   */
   try {
-    const tweets = InMemoryDbService.tweets.getAllTweets();
+    const tweets = await PrismaDbService.tweets.getAllTweets();
     return res.status(200).json(tweets);
   } catch (error) {
     return res.status(500);
@@ -18,13 +18,13 @@ TweetRouter.get("/api/tweets", (req, res) => {
 });
 
 // Get tweet by ID
-TweetRouter.get("/api/tweets/:id", (req, res) => {
+TweetRouter.get("/api/tweets/:id", async (req, res) => {
   /*
     Get a specific tweet by ID
   */
   try {
     const tweetId = req.params.id;
-    const tweet = InMemoryDbService.tweets.getTweetById(tweetId);
+    const tweet = await PrismaDbService.tweets.getTweetById(tweetId);
 
     if (!tweet) {
       return res.status(404).json({
@@ -42,7 +42,7 @@ TweetRouter.get("/api/tweets/:id", (req, res) => {
 });
 
 // Create a new tweet
-TweetRouter.post("/api/tweets", authenticateToken, (req, res) => {
+TweetRouter.post("/api/tweets", authenticateToken, async (req, res) => {
   /*
     Create a new tweet
     Header:
@@ -64,14 +64,14 @@ TweetRouter.post("/api/tweets", authenticateToken, (req, res) => {
     if (!content) {
       return res.status(400).json({ message: "Content tidak boleh kosong" });
     }
-
+    console.log(req.user.username);
     const newTweet = {
       title: title,
       content: content,
       userUsername: req.user.username,
     };
 
-    const createdTweet = InMemoryDbService.tweets.createTweet(newTweet);
+    const createdTweet = await PrismaDbService.tweets.createTweet(newTweet);
 
     return res.status(201).json({
       message: "Tweet berhasil dibuat",
@@ -83,7 +83,7 @@ TweetRouter.post("/api/tweets", authenticateToken, (req, res) => {
 });
 
 // Edit a tweet
-TweetRouter.put("/api/tweets/:id", authenticateToken, (req, res) => {
+TweetRouter.put("/api/tweets/:id", authenticateToken, async (req, res) => {
   /*
     Edit an existing tweet
     Header:
@@ -102,7 +102,7 @@ TweetRouter.put("/api/tweets/:id", authenticateToken, (req, res) => {
       return res.status(400).json({ message: "Content tidak boleh kosong" });
     }
 
-    const isTweetExists = InMemoryDbService.tweets.getTweetById(tweetId);
+    const isTweetExists = await PrismaDbService.tweets.getTweetById(tweetId);
     if (!isTweetExists) {
       return res.status(404).json({
         message: "Tweet not found",
@@ -115,7 +115,7 @@ TweetRouter.put("/api/tweets/:id", authenticateToken, (req, res) => {
       });
     }
 
-    const updatedTweet = InMemoryDbService.tweets.updateTweet(tweetId, content);
+    const updatedTweet = await PrismaDbService.tweets.updateTweet(tweetId, content);
     return res.status(200).json({
       message: "Tweet updated successfully",
       tweet: updatedTweet,
@@ -126,7 +126,7 @@ TweetRouter.put("/api/tweets/:id", authenticateToken, (req, res) => {
 });
 
 // Delete a tweet
-TweetRouter.delete("/api/tweets/:id", authenticateToken, (req, res) => {
+TweetRouter.delete("/api/tweets/:id", authenticateToken, async (req, res) => {
   /*
     Delete a tweet
     Header:
@@ -135,7 +135,7 @@ TweetRouter.delete("/api/tweets/:id", authenticateToken, (req, res) => {
   try {
     const tweetId = req.params.id;
 
-    const isTweetExists = InMemoryDbService.tweets.getTweetById(tweetId);
+    const isTweetExists = await PrismaDbService.tweets.getTweetById(tweetId);
     if (!isTweetExists) {
       return res.status(404).json({
         message: "Tweet not found",
@@ -148,7 +148,7 @@ TweetRouter.delete("/api/tweets/:id", authenticateToken, (req, res) => {
       });
     }
 
-    InMemoryDbService.tweets.deleteTweet(tweetId);
+    await PrismaDbService.tweets.deleteTweet(tweetId);
     return res.status(200).json({
       message: "Tweet deleted successfully",
     });

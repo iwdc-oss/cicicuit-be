@@ -1,6 +1,6 @@
-import InMemoryDbService from "../database/inMemoryDb.mjs";
+import PrismaDbService from "../database/prismaDbService.mjs";
 
-export const authenticateToken = (req, res, next) => {
+export const authenticateToken = async (req, res, next) => {
   try {
     const authHeader = req.headers.authorization;
 
@@ -21,7 +21,8 @@ export const authenticateToken = (req, res, next) => {
     const token = parts[1];
 
     // Find user with this token
-    const user = InMemoryDbService.user.findUserByToken(token);
+    const user = await PrismaDbService.user.findUserByToken(token);
+    console.log(user);
 
     if (!user) {
       return res.status(401).json({
