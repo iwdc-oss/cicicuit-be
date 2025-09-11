@@ -5,8 +5,8 @@ import cors from 'cors';
 const app = express();
 
 const corsOptions = {
-  origin: 'http://localhost:5000', // Replace with your frontend URL
-  optionsSuccessStatus: 200, // For legacy browser compatibility
+  origin: '*',
+  optionsSuccessStatus: 200,
 };
 
 app.use(cors(corsOptions));
